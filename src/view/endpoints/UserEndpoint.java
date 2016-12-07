@@ -23,7 +23,7 @@ public class UserEndpoint {
      * @return En JSON String
      */
     @GET
-    @Consumes("applications/json")
+    @Consumes("application/json")
     @Path("/lecture/{code}")
     public Response getLectures(@PathParam("code") String code) {
         Gson gson = new Gson();
@@ -31,9 +31,9 @@ public class UserEndpoint {
         ArrayList<LectureDTO> lectures = userCtrl.getLectures(code);
 
         if (!lectures.isEmpty()) {
-            return successResponse(200, lectures);
+            return successResponse(200, gson.toJson(lectures));
         } else {
-            return errorResponse(404, "Failed. Couldn't get lectures.");
+            return errorResponse(404, gson.toJson("Failed. Couldn't get reviews."));
         }
     }
 
@@ -52,14 +52,14 @@ public class UserEndpoint {
         ArrayList<CourseDTO> courses = userCtrl.getCourses(userId);
 
         if (!courses.isEmpty()) {
-            return successResponse(200, courses);
+            return successResponse(200, gson.toJson(courses));
         } else {
-            return errorResponse(404, "Failed. Couldn't get reviews.");
+            return errorResponse(404, gson.toJson("Failed. Couldn't get reviews."));
         }
     }
 
     @GET
-    @Consumes("applications/json")
+    @Consumes("application/json")
     @Path("/review/{lectureId}")
     public Response getReviews(@PathParam("lectureId") int lectureId) {
         Gson gson = new Gson();
@@ -71,6 +71,16 @@ public class UserEndpoint {
         } else {
             return errorResponse(404, "Failed. Couldn't get reviews.");
         }
+    }
+
+    @OPTIONS
+    @Path("/login")
+    public Response optionsLogin() {
+        return Response
+                .status(200)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Headers", "Content-Type")
+                .build();
     }
 
     @POST
@@ -89,16 +99,21 @@ public class UserEndpoint {
         }
     }
 
+
+
     protected Response errorResponse(int status, String message) {
 
         return Response.status(status).entity(new Gson().toJson(Digester.encrypt("{\"message\": \"" + message + "\"}"))).build();
-        //return Response.status(status).entity(new Gson().toJson("{\"message\": \"" + message + "\"}")).build());
+        //return Response.status(status).entity(new Gson().toJson("{\"message\": \"" + message + "\"}")).build();
     }
 
     protected Response successResponse(int status, Object data) {
         Gson gson = new Gson();
 
-        return Response.status(status).entity(gson.toJson(Digester.encrypt(gson.toJson(data)))).build();
-        //return Response.status(status).entity(gson.toJson(data)).build();
+        //Pt. udkommenteret for testing.
+        //return Response.status(status).entity(gson.toJson(Digester.encrypt(gson.toJson(data)))).build();
+
+        //Adding response headers to enable CORS in the Chrome browser
+        return Response.status(status).header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Headers", "Content-Type").entity(gson.toJson(data)).build();
     }
 }

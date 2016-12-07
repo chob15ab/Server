@@ -1,5 +1,6 @@
 package logic;
 
+import security.Digester;
 import shared.LectureDTO;
 import shared.Logging;
 import shared.ReviewDTO;
@@ -33,13 +34,16 @@ public class UserController {
         try {
             Map<String, String> params = new HashMap();
             params.put("cbs_mail", String.valueOf(cbs_email));
+
+            password = Digester.hashWithSalt(password);
             params.put("password", String.valueOf(password));
 
-            String[] attributes = {"id"};
+            String[] attributes = {"id, type"};
             ResultSet rs = DBWrapper.getRecords("user", attributes, params, null, 0);
 
             while (rs.next()) {
                 user.setId(rs.getInt("id"));
+                user.setType(rs.getString("type"));
                 System.out.print("User found");
                 return user;
             }
@@ -58,7 +62,7 @@ public class UserController {
 
         try {
             Map<String, String> params = new HashMap();
-            params.put("id", String.valueOf(lectureId));
+            params.put("lecture_id", String.valueOf(lectureId));
             params.put("is_deleted", "0");
             String[] attributes = {"id", "user_id", "lecture_id", "rating", "comment"};
 
@@ -98,7 +102,7 @@ public class UserController {
 
                 lecture.setStartDate(rs.getTimestamp("start"));
                 lecture.setEndDate(rs.getTimestamp("end"));
-                //lecture.setId(rs.getInt("id"));
+                lecture.setId(rs.getInt("id"));
                 lecture.setType(rs.getString("type"));
                 lecture.setDescription(rs.getString("description"));
 
@@ -152,8 +156,11 @@ public class UserController {
             Map<String, String> params = new HashMap();
             Map<String, String> joins = new HashMap();
 
-            params.put("course_attendant.user_id", String.valueOf(userId));
-            joins.put("course_attendant", "course_id");
+            //params.put("course_attendant.user_id", String.valueOf(userId));
+            //joins.put("course_attendant", "course_id");
+
+            params.put("usercourse.user_id", String.valueOf(userId));
+            joins.put("usercourse", "course_id");
 
             String[] attributes = new String[]{"name", "code", "course.id"};
             ResultSet rs = DBWrapper.getRecords("course", attributes, params, joins, 0);

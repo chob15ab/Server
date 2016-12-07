@@ -35,7 +35,9 @@ public class LectureDTO {
         return id;
     }
 
-
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public int getLectureId() {
         return id;

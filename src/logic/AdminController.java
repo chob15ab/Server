@@ -1,5 +1,5 @@
 package logic;
-
+//test
 import security.Digester;
 import service.DBWrapper;
 import shared.*;
@@ -143,8 +143,7 @@ public class AdminController extends UserController {
         String type = newUser.getType();
 
         //Hash password ved opret bruger.
-        String securePw = Digester.hashWithSalt(password);
-        String securePw2 = Digester.hashWithSalt((securePw));
+        String securePw2 = Digester.hashWithSalt(password);
 
         /**
          * For løkke der tjekker om brugeren findes i forvejen

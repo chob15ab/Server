@@ -2,6 +2,7 @@ package view;
 
 import logic.AdminController;
 import logic.MainController;
+import logic.UserController;
 import security.Digester;
 import shared.AdminDTO;
 import shared.UserDTO;
@@ -28,6 +29,7 @@ public class TUIMainMenu {
         Scanner input = new Scanner(System.in);
         String mail="";
         String password = "";
+
         try {
             System.out.println("Velkommen til Undervisningsevaluering for CBS administratorer!");
             System.out.println("Tast 0 for at stoppe programmet");
@@ -52,10 +54,10 @@ public class TUIMainMenu {
                     System.out.println("Indtast password:");
                     password = input2.nextLine();
                     //hash password at login ("klient" side)
-                    String securePW = Digester.hashWithSalt(password);
+                    //String securePW = Digester.hashWithSalt(password);
 
                     adminDTO.setCbsMail(mail);
-                    adminDTO.setPassword(securePW);
+                    adminDTO.setPassword(password);
 
                     mainController.loginAdmin(adminDTO);
 
