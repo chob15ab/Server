@@ -1,8 +1,15 @@
 package security;
 
 import logic.ConfigLoader;
+import service.DBWrapper;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -106,5 +113,32 @@ public class Digester {
         BASE64Encoder enc = new BASE64Encoder();
         return enc.encode(bytes).replaceAll("\\s", "");
 
+    }
+
+    public static String GenerateRandomString(int length) {
+        char[] chars = "abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKLMNOPQRSTUVXYZ".toCharArray();
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            char c = chars[random.nextInt(chars.length)];
+            sb.append(c);
+        }
+        return sb.toString();
+    }
+
+    public static String GetSessionValue(String sessionId)  {
+        Map<String, String> params = new HashMap();
+        params.put("sessionId", sessionId);
+        String[] attr = new String[1];
+        attr[0] = "content";
+        try {
+            ResultSet rs = DBWrapper.getRecords("sessions", attr, params, null, 1);
+            while (rs.next()) {
+                return rs.getString("content");
+            }
+        } catch (SQLException ex) {
+            //TODO: Optionally add error message here
+        }
+        return null;
     }
 }

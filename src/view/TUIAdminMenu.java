@@ -1,9 +1,11 @@
 package view;
 
 import logic.AdminController;
+import logic.UserController;
 import shared.AdminDTO;
 import shared.StudentDTO;
 import shared.UserDTO;
+import view.endpoints.UserEndpoint;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
@@ -34,6 +36,9 @@ public class TUIAdminMenu {
             System.out.println("Tast 2 for slet en bruger. ");
             System.out.println("Tast 3 for slet et review.");
             System.out.println("Tast 4 for tildeling af kursus til bruger.");
+
+            //UserEndpoint u = new UserEndpoint();
+            //u.getCourses("YhMnOTGCrGrMbcYxeILKPgboBNiinkPcL-GlemuqbBRTsvKZSzGadaVFlhhisixYAqbeqgGkSFxGlasEOViyPMlTFNMzHzqIIKUaFMsHhUvsIVGPGatVjAmO-cFBHGjwrSebvNVXKgdhVNzcgrLebfyKaZZebQPlcyJnEqAE-YmIxSJbxAMGfOU-qcVGSidXukXlniUJ");
 
             /**
              * Her modtager vi admins respons til ovenstående menu, og sender dem i gennem en switch som sender

@@ -5,7 +5,10 @@ import shared.LectureDTO;
 import shared.Logging;
 import shared.ReviewDTO;
 
+import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import service.DBWrapper;
@@ -27,7 +30,7 @@ public class UserController {
     public UserController() {
     }
 
-    public UserDTO login(String cbs_email, String password) {
+    public String[] login(String cbs_email, String password) {
 
         UserDTO user = new UserDTO();
 
@@ -45,7 +48,22 @@ public class UserController {
                 user.setId(rs.getInt("id"));
                 user.setType(rs.getString("type"));
                 System.out.print("User found");
-                return user;
+
+                String sessionId = Digester.GenerateRandomString(200);
+                // TODO: Check why we have a red line beneath.
+                LocalDateTime dt = LocalDateTime.now().plusHours(2);
+
+                Map<String, String> sessionParams = new HashMap();
+                sessionParams.put("sessionId", String.valueOf(sessionId));
+                sessionParams.put("expires", dt.toString());
+                sessionParams.put("content", Integer.toString(user.getId()));
+
+                DBWrapper.insertIntoRecords("sessions", sessionParams);
+                String[] returnMe = new String[2];
+                returnMe[0] = sessionId;
+                returnMe[1] = user.getType();
+
+                return returnMe;
             }
 
         } catch (SQLException e) {
@@ -53,6 +71,23 @@ public class UserController {
         }
 
         System.out.print("User not found");
+        return null;
+    }
+
+    public String getSession(String sessionId) {
+        // TODO: Implement session expires parameter! Currently users will be logged in forever.
+        Map<String, String> params = new HashMap();
+        params.put("sessionId", String.valueOf(sessionId));
+
+        String[] attributes = {"sessionId, expires, content"};
+        try {
+            ResultSet rs = DBWrapper.getRecords("sessions", attributes, params, null, 0);
+            while (rs.next()) {
+                return rs.getString("content");
+            }
+        } catch (SQLException ex) {
+            // TODO: Arguably add error logging here
+        }
         return null;
     }
 

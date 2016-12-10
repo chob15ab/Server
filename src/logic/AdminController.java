@@ -156,9 +156,21 @@ public class AdminController extends UserController {
 
             }
         }
+        boolean hasNumber = false;
+        boolean hasUppercaseLetter = false;
+        boolean hasLength = false;
+        if (password.matches(".*?[0-9].*?")) {
+            hasNumber = true;
+        }
+        if (password.matches(".*?[A-Z].*?")) {
+            hasUppercaseLetter = true;
+        }
+        if (password.length() > 2) {
+            hasLength = true;
+        }
 
                 //tjekker passwordet for tal og bogstaver, om det opfylder et normalt krav til et password
-                if ((password.matches(".*[a-zA-Z]+.*"))) {
+                if (hasNumber && hasUppercaseLetter && hasLength) {
                         try {
                             //oprettelse af bruger i DB
                             Map<String, String> userCreate = new HashMap<String, String>();
@@ -177,9 +189,9 @@ public class AdminController extends UserController {
                             Logging.log(e, 1, "Brugeren kunne ikke oprettes" + "\n");
                         }
                 } else {
-                        System.out.println("Forkert værdi i password. Prøv igen " + "\n");
-                        tuiAdminMenu = new TUIAdminMenu();
-                        tuiAdminMenu.menu(adminDTO);
+                    System.out.println("Forkert værdi i password. Må indebære et tal og stort bogstav. Prøv igen " + "\n");
+                    tuiAdminMenu = new TUIAdminMenu();
+                    tuiAdminMenu.menu(adminDTO);
                 }
         }
 
@@ -261,7 +273,7 @@ public class AdminController extends UserController {
 
             params.put("course_id", Integer.toString(idCourseChoice));
             params.put("user_id", Integer.toString(userId));
-            DBWrapper.insertIntoRecords("course_attendant", params);
+            DBWrapper.insertIntoRecords("usercourse", params);
 
         } catch (SQLException e) {
             e.printStackTrace();
