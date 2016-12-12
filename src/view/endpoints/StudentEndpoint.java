@@ -15,19 +15,29 @@ import javax.ws.rs.core.Response;
 @Path("/api/student")
 public class StudentEndpoint extends UserEndpoint {
 
+    @OPTIONS
+    @Path("/review/")
+    public Response optionsGetReview() {
+        return Response
+                .status(200)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Headers", "Content-Type")
+                .build();
+    }
+
     @POST
-    @Consumes("application/json")
-    @Path("/review")
+    @Path("/review/")
     public Response addReview(String json) {
 
         Gson gson = new Gson();
         ReviewDTO review = new Gson().fromJson(json, ReviewDTO.class);
+        review.setUserId(review.getUserId());
 
         StudentController studentCtrl = new StudentController();
         boolean isAdded = studentCtrl.addReview(review);
 
         if (isAdded) {
-            String toJson = gson.toJson(Digester.encrypt(gson.toJson(isAdded)));
+            String toJson = gson.toJson(gson.toJson(isAdded));
 
             return successResponse(200, toJson);
 
@@ -38,11 +48,19 @@ public class StudentEndpoint extends UserEndpoint {
 
     @DELETE
     @Consumes("application/json")
-    @Path("/review/")
-    public Response deleteReview(String data) {
+    @Path("/review/{sessionId}/")
+    public Response deleteReview(@PathParam("sessionId") String sessionId, String data) {
+        if (sessionId == null) {
+            return errorResponse(500, "Failed. Couldn't get reviews.");
+        }
+        String userId = Digester.GetSessionValue(sessionId);
+        if (userId == null || !userId.matches("[0-9]+")) {
+            return errorResponse(401, "Failed. Couldn't get reviews.");
+        }
         Gson gson = new Gson();
 
         ReviewDTO review = gson.fromJson(data, ReviewDTO.class);
+        review.setUserId(Integer.parseInt(userId));
         StudentController studentCtrl = new StudentController();
 
         boolean isDeleted = studentCtrl.softDeleteReview(review.getUserId(), review.getId());

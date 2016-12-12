@@ -250,7 +250,7 @@ public class AdminController extends UserController {
 
             while (rs.next()) {
                 CourseDTO courses1 = new CourseDTO();
-                //courses1.setId(rs.getInt("id"));
+                courses1.setId(rs.getString("id"));
                 courses1.setCode(rs.getString("code"));
                 courses1.setDisplaytext(rs.getString("name"));
 
