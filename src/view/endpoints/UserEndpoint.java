@@ -3,6 +3,7 @@ package view.endpoints;
 import com.google.gson.Gson;
 import logic.UserController;
 import security.Digester;
+import security.UserSecurityModel;
 import service.DBWrapper;
 import shared.CourseDTO;
 import shared.LectureDTO;
@@ -39,7 +40,8 @@ public class UserEndpoint {
     @Path("/lecture/{sessionId}/{course_id}") //Working
     public Response getLectures(@PathParam("sessionId") String sessionId, @PathParam("course_id") String course_id) {
         Gson gson = new Gson();
-        int userId = Digester.VerifySession(sessionId);
+        UserSecurityModel user = Digester.VerifySession(sessionId);
+        int userId = user.id;
         if (userId < 0) {
             return errorResponse(401, gson.toJson("User is not authenticated."));
         }
@@ -73,7 +75,8 @@ public class UserEndpoint {
     @GET
     @Path("/course/{sessionId}")
     public Response getCourses(@PathParam("sessionId") String sessionId) {
-        int userId = Digester.VerifySession(sessionId);
+        UserSecurityModel user = Digester.VerifySession(sessionId);
+        int userId = user.id;
         if (userId <= 0) {
             return errorResponse(401, "User is not authenticated.");
         }
@@ -91,13 +94,14 @@ public class UserEndpoint {
     @GET
     @Path("/review/{sessionId}/{lectureId}")
     public Response getReviews(@PathParam("sessionId") String sessionId, @PathParam("lectureId") int lectureId) {
-        int userId = Digester.VerifySession(sessionId);
+        UserSecurityModel user = Digester.VerifySession(sessionId);
+        int userId = user.id;
         if (userId < 0) {
             return errorResponse(401, "User is not authorized.");
         }
         Gson gson = new Gson();
         UserController userCtrl = new UserController();
-        ArrayList<ReviewDTO> reviews = userCtrl.getReviews(lectureId, userId);
+        ArrayList<ReviewDTO> reviews = userCtrl.getReviews(lectureId, user);
 
         if (!reviews.isEmpty()) {
             return successResponse(200, gson.toJson(reviews));
@@ -137,7 +141,21 @@ public class UserEndpoint {
         return errorResponse(401, "Couldn't login. Try again!");
     }
 
-
+    @OPTIONS
+    @Path("/logout/{sessionId}")
+    public Response optionsLogout() {
+        return Response
+                .status(200)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Headers", "Content-Type")
+                .build();
+    }
+    @GET
+    @Path("/logout/{sessionId}")
+    public Response logout(@PathParam("sessionId") String sessionId) {
+        Digester.DeleteSession(sessionId);
+        return errorResponse(200, "Logout complete");
+    }
 
     protected Response errorResponse(int status, String message) {
 

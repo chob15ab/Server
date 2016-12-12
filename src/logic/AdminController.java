@@ -1,6 +1,7 @@
 package logic;
 
 import security.Digester;
+import security.UserSecurityModel;
 import service.DBWrapper;
 import shared.*;
 import view.TUIAdminMenu;
@@ -81,9 +82,14 @@ public class AdminController extends UserController {
                  */
 
                 UserController u = new UserController();
-                u.softDeleteReview(0,idReviewChoice);
 
-                TUIAdminMenu tuiAdminMenu = new TUIAdminMenu();
+        try {
+            u.softDeleteReview(0,idReviewChoice, new UserSecurityModel(String.valueOf(adminDTO.getId())));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        TUIAdminMenu tuiAdminMenu = new TUIAdminMenu();
                 tuiAdminMenu.menu(adminDTO);
             }
 

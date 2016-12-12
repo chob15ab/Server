@@ -1,6 +1,7 @@
 package logic;
 
 import security.Digester;
+import security.UserSecurityModel;
 import shared.LectureDTO;
 import shared.Logging;
 import shared.ReviewDTO;
@@ -91,18 +92,23 @@ public class UserController {
         return null;
     }
 
-    public ArrayList<ReviewDTO> getReviews(int lectureId) {
-        return this.getReviews(lectureId, 0);
+    public ArrayList<ReviewDTO> getReviews(int lectureId, int userId) { // Please do not use this directly.
+        try {
+            return this.getReviews(lectureId, new UserSecurityModel(String.valueOf(userId)));
+        } catch (Exception e) {
+            return null;
+        }
     }
+    public ArrayList<ReviewDTO> getReviews(int lectureId, UserSecurityModel user) {
+        int userId = user.id;
 
-    public ArrayList<ReviewDTO> getReviews(int lectureId, int userId) {
         ArrayList<ReviewDTO> reviews = new ArrayList<ReviewDTO>();
 
         try {
             Map<String, String> params = new HashMap();
             params.put("lecture_id", String.valueOf(lectureId));
             params.put("is_deleted", "0");
-            if (userId > 0) {
+            if (!user.role.equals("admin") && !user.role.equals("teacher")) {
                 params.put("user_id", String.valueOf(userId));
             }
             String[] attributes = {"id", "user_id", "lecture_id", "rating", "comment"};
@@ -162,7 +168,7 @@ public class UserController {
 
 
     //Metode der softdeleter et review fra databasen - skal ind i AdminControlleren, da dette er moden for at slette et review uafhængigt af brugertype.
-    public boolean softDeleteReview(int userId, int reviewId) {
+    public boolean softDeleteReview(int userId, int reviewId, UserSecurityModel user) {
         boolean isSoftDeleted = true;
 
         try {
@@ -172,7 +178,7 @@ public class UserController {
 
             Map<String, String> whereParams = new HashMap();
 
-            if(userId != 0) {
+            if(!user.role.equals("admin")) {
                 whereParams.put("user_id", String.valueOf(userId));
             }
 
@@ -189,8 +195,15 @@ public class UserController {
         return isSoftDeleted;
     }
 
-    public ArrayList<CourseDTO> getCourses(int userId) {
-
+    public ArrayList<CourseDTO> getCourses(int userId) { // Please do not use this directly.
+        try {
+            return this.getCourses(new UserSecurityModel(String.valueOf(userId)));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    public ArrayList<CourseDTO> getCourses(UserSecurityModel user) {
+        int userId = user.id;
         ArrayList<CourseDTO> courses = new ArrayList<CourseDTO>();
 
         try {
@@ -199,9 +212,10 @@ public class UserController {
 
             //params.put("course_attendant.user_id", String.valueOf(userId));
             //joins.put("course_attendant", "course_id");
-
-            params.put("usercourse.user_id", String.valueOf(userId));
-            joins.put("usercourse", "course_id");
+            if (!user.role.equals("admin")) {
+                params.put("usercourse.user_id", String.valueOf(userId));
+                joins.put("usercourse", "course_id");
+            }
 
             String[] attributes = new String[]{"name", "code", "course.id"};
             ResultSet rs = DBWrapper.getRecords("course", attributes, params, joins, 0);

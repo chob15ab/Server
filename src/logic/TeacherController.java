@@ -19,12 +19,12 @@ public class TeacherController extends UserController {
     public double calculateAverageRatingOnLecture(int lectureId) {
         //DecimalFormat df = new DecimalFormat("#.00");
 
-        getReviews(lectureId);
+        getReviews(lectureId, 2);
 
-        int numberOfReviews = getReviews(lectureId).size();
+        int numberOfReviews = getReviews(lectureId, 2).size();
         int sumOfRatings = 0;
 
-        for (ReviewDTO review : getReviews(lectureId)) {
+        for (ReviewDTO review : getReviews(lectureId, 2)) {
             sumOfRatings = sumOfRatings + review.getRating();
         }
 
@@ -45,12 +45,12 @@ public class TeacherController extends UserController {
         }
 
         //for (ReviewDTO review : getReviews1(lectureId)) {
-        for (ReviewDTO review : getReviews(lectureId)) {
+        for (ReviewDTO review : getReviews(lectureId, 2)) {
             sumOfRatings = sumOfRatings + review.getRating();
         }
 
         //numberOfReviews = getReviews1(lectureId).size();
-        numberOfReviews = getReviews(lectureId).size();
+        numberOfReviews = getReviews(lectureId, 2).size();
 
         double average = sumOfRatings / numberOfReviews;
 

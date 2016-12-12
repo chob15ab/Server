@@ -142,14 +142,29 @@ public class Digester {
         return null;
     }
 
-    public static int VerifySession(String sessionId) {
+    public static boolean DeleteSession(String sessionId) {
+        Map<String, String> params = new HashMap();
+        params.put("sessionId", sessionId);
+        try {
+            DBWrapper.deleteRecords("sessions", params);
+        } catch (SQLException ex) {
+            //TODO: Optionally add error message here
+        }
+        return true; // TODO: Fix
+    }
+
+    public static UserSecurityModel VerifySession(String sessionId) {
         if (sessionId == null) {
-            return -1;
+            return null;
         }
         String userId = Digester.GetSessionValue(sessionId);
         if (userId == null || !userId.matches("[0-9]+")) {
-            return -1;
+            return null;
         }
-        return Integer.parseInt(userId);
+        try {
+            return new UserSecurityModel(userId);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 }

@@ -3,6 +3,7 @@ package view.endpoints;
 import com.google.gson.Gson;
 import logic.StudentController;
 import security.Digester;
+import security.UserSecurityModel;
 import shared.ReviewDTO;
 
 import javax.ws.rs.*;
@@ -30,7 +31,8 @@ public class StudentEndpoint extends UserEndpoint {
     @Consumes("application/json")
     @Path("/review/{sessionId}")
     public Response addReview(@PathParam("sessionId") String sessionId, String json) {
-        int userId = Digester.VerifySession(sessionId);
+        UserSecurityModel user = Digester.VerifySession(sessionId);
+        int userId = user.id;
         if (userId <= 0) {
             return errorResponse(401, "User is not authenticated.");
         }
@@ -57,7 +59,8 @@ public class StudentEndpoint extends UserEndpoint {
     @Consumes("application/json")
     @Path("/review/{sessionId}")
     public Response deleteReview(@PathParam("sessionId") String sessionId, String json) {
-        int userId = Digester.VerifySession(sessionId);
+        UserSecurityModel user = Digester.VerifySession(sessionId);
+        int userId = user.id;
         if (userId < 0) {
             return errorResponse(401, "User is not authenticated.");
         }
@@ -67,7 +70,7 @@ public class StudentEndpoint extends UserEndpoint {
         review.setUserId(userId);
         StudentController studentCtrl = new StudentController();
 
-        boolean isDeleted = studentCtrl.softDeleteReview(review.getUserId(), review.getId());
+        boolean isDeleted = studentCtrl.softDeleteReview(review.getUserId(), review.getId(), user);
 
         if (isDeleted) {
             String toJson = gson.toJson(Digester.encrypt(gson.toJson(isDeleted)));
