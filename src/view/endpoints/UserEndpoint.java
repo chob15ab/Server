@@ -39,13 +39,9 @@ public class UserEndpoint {
     @Path("/lecture/{sessionId}/{course_id}") //Working
     public Response getLectures(@PathParam("sessionId") String sessionId, @PathParam("course_id") String course_id) {
         Gson gson = new Gson();
-        if (sessionId == null) {
-
-            return errorResponse(500, gson.toJson("Failed. Couldn't get reviews."));
-        }
-        String userId = Digester.GetSessionValue(sessionId);
-        if (userId == null) {
-            return errorResponse(401, gson.toJson("Failed. Couldn't get reviews."));
+        int userId = Digester.VerifySession(sessionId);
+        if (userId < 0) {
+            return errorResponse(401, gson.toJson("User is not authenticated."));
         }
 
         UserController userCtrl = new UserController();
@@ -77,15 +73,13 @@ public class UserEndpoint {
     @GET
     @Path("/course/{sessionId}")
     public Response getCourses(@PathParam("sessionId") String sessionId) {
-         if (sessionId == null) {
-            return errorResponse(500, "Failed. Couldn't get reviews.");
+        int userId = Digester.VerifySession(sessionId);
+        if (userId <= 0) {
+            return errorResponse(401, "User is not authenticated.");
         }
-        String userId = Digester.GetSessionValue(sessionId);
-        if (userId == null || !userId.matches("[0-9]+")) {
-            return errorResponse(401, "Failed. Couldn't get reviews.");
-        }
+
         UserController userCtrl = new UserController();
-        ArrayList<CourseDTO> courses = userCtrl.getCourses(Integer.parseInt(userId));
+        ArrayList<CourseDTO> courses = userCtrl.getCourses(userId);
 
         if (!courses.isEmpty()) {
             return successResponse(200, courses);
@@ -95,15 +89,18 @@ public class UserEndpoint {
     }
 
     @GET
-    @Consumes("application/json")
-    @Path("/review/{lectureId}")
-    public Response getReviews(@PathParam("lectureId") int lectureId) {
+    @Path("/review/{sessionId}/{lectureId}")
+    public Response getReviews(@PathParam("sessionId") String sessionId, @PathParam("lectureId") int lectureId) {
+        int userId = Digester.VerifySession(sessionId);
+        if (userId < 0) {
+            return errorResponse(401, "User is not authorized.");
+        }
         Gson gson = new Gson();
         UserController userCtrl = new UserController();
-        ArrayList<ReviewDTO> reviews = userCtrl.getReviews(lectureId);
+        ArrayList<ReviewDTO> reviews = userCtrl.getReviews(lectureId, userId);
 
         if (!reviews.isEmpty()) {
-            return successResponse(200, reviews);
+            return successResponse(200, gson.toJson(reviews));
         } else {
             return errorResponse(404, "Failed. Couldn't get reviews.");
         }

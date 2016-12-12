@@ -16,51 +16,55 @@ import javax.ws.rs.core.Response;
 public class StudentEndpoint extends UserEndpoint {
 
     @OPTIONS
-    @Path("/review/")
-    public Response optionsGetReview() {
+    @Path("/review/{sessionId}")
+    public Response optionsGetReview(@PathParam("sessionId") String sessionId) {
         return Response
                 .status(200)
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Headers", "Content-Type")
+                .header("Access-Control-Allow-Methods", "POST, DELETE")
                 .build();
     }
 
     @POST
-    @Path("/review/")
-    public Response addReview(String json) {
-
+    @Consumes("application/json")
+    @Path("/review/{sessionId}")
+    public Response addReview(@PathParam("sessionId") String sessionId, String json) {
+        int userId = Digester.VerifySession(sessionId);
+        if (userId <= 0) {
+            return errorResponse(401, "User is not authenticated.");
+        }
         Gson gson = new Gson();
-        ReviewDTO review = new Gson().fromJson(json, ReviewDTO.class);
-        review.setUserId(review.getUserId());
+        try {
+            ReviewDTO review = new Gson().fromJson(json, ReviewDTO.class);
+            review.setUserId(userId);
 
-        StudentController studentCtrl = new StudentController();
-        boolean isAdded = studentCtrl.addReview(review);
+            StudentController studentCtrl = new StudentController();
+            boolean isAdded = studentCtrl.addReview(review);
 
-        if (isAdded) {
-            String toJson = gson.toJson(gson.toJson(isAdded));
-
-            return successResponse(200, toJson);
-
-        } else {
-            return errorResponse(404, "Failed. Couldn't get reviews.");
+            if (isAdded) {
+                String toJson = gson.toJson(gson.toJson(isAdded));
+                return successResponse(200, toJson);
+            } else {
+                return errorResponse(500, "Failed. Couldn't create review.");
+            }
+        } catch (Exception ex) {
+            return errorResponse(500, "Failed. Couldn't create review. Reason: " + ex.getMessage());
         }
     }
 
     @DELETE
     @Consumes("application/json")
-    @Path("/review/{sessionId}/")
-    public Response deleteReview(@PathParam("sessionId") String sessionId, String data) {
-        if (sessionId == null) {
-            return errorResponse(500, "Failed. Couldn't get reviews.");
-        }
-        String userId = Digester.GetSessionValue(sessionId);
-        if (userId == null || !userId.matches("[0-9]+")) {
-            return errorResponse(401, "Failed. Couldn't get reviews.");
+    @Path("/review/{sessionId}")
+    public Response deleteReview(@PathParam("sessionId") String sessionId, String json) {
+        int userId = Digester.VerifySession(sessionId);
+        if (userId < 0) {
+            return errorResponse(401, "User is not authenticated.");
         }
         Gson gson = new Gson();
 
-        ReviewDTO review = gson.fromJson(data, ReviewDTO.class);
-        review.setUserId(Integer.parseInt(userId));
+        ReviewDTO review = gson.fromJson(json, ReviewDTO.class);
+        review.setUserId(userId);
         StudentController studentCtrl = new StudentController();
 
         boolean isDeleted = studentCtrl.softDeleteReview(review.getUserId(), review.getId());

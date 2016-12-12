@@ -141,4 +141,15 @@ public class Digester {
         }
         return null;
     }
+
+    public static int VerifySession(String sessionId) {
+        if (sessionId == null) {
+            return -1;
+        }
+        String userId = Digester.GetSessionValue(sessionId);
+        if (userId == null || !userId.matches("[0-9]+")) {
+            return -1;
+        }
+        return Integer.parseInt(userId);
+    }
 }

@@ -92,13 +92,19 @@ public class UserController {
     }
 
     public ArrayList<ReviewDTO> getReviews(int lectureId) {
+        return this.getReviews(lectureId, 0);
+    }
 
+    public ArrayList<ReviewDTO> getReviews(int lectureId, int userId) {
         ArrayList<ReviewDTO> reviews = new ArrayList<ReviewDTO>();
 
         try {
             Map<String, String> params = new HashMap();
             params.put("lecture_id", String.valueOf(lectureId));
             params.put("is_deleted", "0");
+            if (userId > 0) {
+                params.put("user_id", String.valueOf(userId));
+            }
             String[] attributes = {"id", "user_id", "lecture_id", "rating", "comment"};
 
             ResultSet rs = DBWrapper.getRecords("review", attributes, params, null, 0);
